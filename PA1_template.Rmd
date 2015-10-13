@@ -1,25 +1,88 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "PA1_template"
+author: "SiddharthIITG"
+date: "Tuesday, October 13, 2015"
+output: html_document
 ---
 
+```{r}
+library(ggplot2)
+library(chron)
+library(dplyr)
 
-## Loading and preprocessing the data
+act = read.csv("./activity.csv")
+actSum = summarise(group_by(act,date), sum(na.omit(steps)))
+names(actSum)[2] = "NumberOfSteps"
+dayNumber = matrix(1:61,61,1)
+actSum = cbind(dayNumber, actSum)
+```
 
+```{r, echo=TRUE}
+plot = ggplot(actSum, aes(x = dayNumber, y = NumberOfSteps)) + 
+        geom_bar(stat="identity",col="red",aes(fill=NumberOfSteps))+
+         labs(title="Histogram for Number of Steps")+
+           labs(x="Day Number", y="Steps")
+plot
+ggsave(plot, file="plot1.jpg")
 
+#Reporting mean and median.
+mean_actSum = as.integer(mean(actSum[[3]]))
+median_actSum = as.integer(median(actSum[[3]]))
+mean_actSum
+median_actSum
+groupingTime = group_by(act, interval)
+actSumTime = summarise(group_by(act,interval), sum(na.omit(steps)))
+names(actSumTime)[[2]] = "Steps"
 
-## What is mean total number of steps taken per day?
+p = ggplot(actSumTime, aes(x=interval, y=Steps))
+p = p + geom_line()
+p
+ggsave(p, file="plot2.jpg")
 
+actSumTime = summarise(group_by(act,interval), sum(na.omit(steps)), mean(na.omit(steps)))
+names(actSumTime) = c("interval","Steps", "Mean")
 
+#Putting in empty values equal to the mean of the available values.
+for( i in 1:17568)
+  if(is.na(act[[1]][i])){
+    int = act[[3]][i]
+    act[[1]][i] = actSumTime[actSumTime[[1]]==int,][3]
+  }
 
-## What is the average daily activity pattern?
+act[[1]] = as.numeric(act[[1]])
+actSum2 = summarise(group_by(act,date), sum(steps))
+names(actSum2)[2] = "NumberOfSteps"
 
+plot = ggplot(actSum2, aes(x = dayNumber, y = NumberOfSteps)) + 
+        geom_bar(stat="identity",col="red",aes(fill=NumberOfSteps))+
+          labs(title="Histogram for Number of Steps")+
+            labs(x="Day Number", y="Steps")
+plot
+ggsave(plot, file="plot3.jpg")
+#Reporting second mean and median.
 
+mean_actSum2 = as.integer(mean(actSum2[[2]]))
+median_actSum2= as.integer(median(actSum2[[2]]))
+mean_actSum2
+median_actSum2
 
-## Imputing missing values
+act[["weekend"]] = chron::is.weekend(act[[2]])
+act[[5]]="weekend"
+act[act[[4]], ][[5]] ="weekend"
+act[!act[[4]], ][[5]] ="weekday"
+act[[5]] = as.factor(act[[5]])
+names(act)[5] = "Day"
 
+actPanel = merge(act, actSumTime, by = "interval")
+drops = "Steps"
+actPanel = actPanel[,!names(actPanel)%in% drops]
+averaged_actPanel <- aggregate(steps ~ interval + Day, data=actPanel, mean)
+plot = ggplot(averaged_actPanel, aes(interval, steps)) + 
+        geom_line() + 
+          facet_grid(Day ~ .) +
+            xlab("interval") + 
+              ylab("avarage number of steps")
+plot
+ggsave(plot, file="plot4.jpg")
 
-
-## Are there differences in activity patterns between weekdays and weekends?
+```
