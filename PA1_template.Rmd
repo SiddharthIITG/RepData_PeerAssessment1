@@ -4,20 +4,22 @@ author: "SiddharthIITG"
 date: "Tuesday, October 13, 2015"
 output: html_document
 ---
-
-```{r}
+#Loading and preprocessing the data
+```{r, echo=FALSE}
 library(ggplot2)
 library(chron)
 library(dplyr)
-
+```
+```{r}
 act = read.csv("./activity.csv")
 actSum = summarise(group_by(act,date), sum(na.omit(steps)))
 names(actSum)[2] = "NumberOfSteps"
 dayNumber = matrix(1:61,61,1)
 actSum = cbind(dayNumber, actSum)
 ```
-
+#What is mean total number of steps taken per day?
 ```{r, echo=TRUE}
+
 plot = ggplot(actSum, aes(x = dayNumber, y = NumberOfSteps)) + 
         geom_bar(stat="identity",col="red",aes(fill=NumberOfSteps))+
          labs(title="Histogram for Number of Steps")+
@@ -30,6 +32,9 @@ mean_actSum = as.integer(mean(actSum[[3]]))
 median_actSum = as.integer(median(actSum[[3]]))
 mean_actSum
 median_actSum
+```
+#What is the average daily activity pattern?
+```{r}
 groupingTime = group_by(act, interval)
 actSumTime = summarise(group_by(act,interval), sum(na.omit(steps)))
 names(actSumTime)[[2]] = "Steps"
@@ -41,8 +46,10 @@ ggsave(p, file="plot2.jpg")
 
 actSumTime = summarise(group_by(act,interval), sum(na.omit(steps)), mean(na.omit(steps)))
 names(actSumTime) = c("interval","Steps", "Mean")
-
+```
+#Imputing missing values
 #Putting in empty values equal to the mean of the available values.
+```{r}
 for( i in 1:17568)
   if(is.na(act[[1]][i])){
     int = act[[3]][i]
@@ -65,7 +72,10 @@ mean_actSum2 = as.integer(mean(actSum2[[2]]))
 median_actSum2= as.integer(median(actSum2[[2]]))
 mean_actSum2
 median_actSum2
-
+#We can see now that the mean and the median of the data are the same.
+```
+##Are there differences in activity patterns between weekdays and weekends?
+```{r}
 act[["weekend"]] = chron::is.weekend(act[[2]])
 act[[5]]="weekend"
 act[act[[4]], ][[5]] ="weekend"
