@@ -48,7 +48,7 @@ actSumTime = summarise(group_by(act,interval), sum(na.omit(steps)), mean(na.omit
 names(actSumTime) = c("interval","Steps", "Mean")
 ```
 #Imputing missing values
-#Putting in empty values equal to the mean of the available values.
+##Putting in empty values equal to the mean of the available values.
 ```{r}
 for( i in 1:17568)
   if(is.na(act[[1]][i])){
